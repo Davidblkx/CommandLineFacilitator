@@ -165,8 +165,8 @@ namespace System.CommandLine.Facilitator
 
             // Load handler
             var handler = _handler.FirstOrDefault(
-                e => e.Target == factory.Type)?
-                .Build(TypeActivator);
+                e => e.ContainsTarget(factory.Type))?
+                .Build(factory.Type, TypeActivator);
             // Get instance, if handler is null try to load it self
             var instance = handler?.instance ?? TypeActivator.GetInstance(factory.Type);
 

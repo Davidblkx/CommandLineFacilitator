@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace System.CommandLine.Facilitator.Factories
@@ -6,22 +7,35 @@ namespace System.CommandLine.Facilitator.Factories
     internal class HandlerFactory
     {
         private readonly Type _t;
-        private readonly MethodInfo? _att;
+        private readonly Dictionary<Type, MethodInfo> _targets;
 
-        public bool IsValid => _att is not null;
+        public bool IsValid => _targets.Count > 0;
 
         public Type Type => _t;
-
-        public Type? Target => _att?
-            .GetCustomAttribute<HandlerAttribute>()?
-            .Target;
 
         public HandlerFactory(Type source)
         {
             _t = source;
-            _att = _t.GetMethods()
-                .FirstOrDefault(e => e.GetCustomAttribute<HandlerAttribute>() is not null);
+            var methods = _t.GetMethods()
+                .Where(e => e.GetCustomAttribute<HandlerAttribute>() is not null);
+
+            _targets = new();
+            foreach (var m in methods)
+            {
+                var type = m.GetCustomAttribute<HandlerAttribute>()?.Target ?? source;
+                _targets[type] = m;
+            }
         }
+
+        /// <summary>
+        /// Determines whether the specified target has handler.
+        /// </summary>
+        /// <param name="target">The target.</param>
+        /// <returns>
+        ///   <c>true</c> if the specified target contains handler; otherwise, <c>false</c>.
+        /// </returns>
+        public bool ContainsTarget(Type target)
+            => _targets.ContainsKey(target);
 
         /// <summary>
         /// Create instance of handler
@@ -29,15 +43,16 @@ namespace System.CommandLine.Facilitator.Factories
         /// <param name="activator">The activator.</param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">$"Type {_t.FullName} doesn't implement {nameof(HandlerAttribute)}</exception>
-        public (object instance, MethodInfo method)? Build(ICustomActivator activator)
+        public (object instance, MethodInfo method)? Build(Type target, ICustomActivator activator)
         {
-            if (_att is null)
-                throw new ArgumentNullException($"Type {_t.FullName} doesn't implement {nameof(HandlerAttribute)}");
+            if (!ContainsTarget(target))
+                throw new NotImplementedException($"Type {_t.FullName} doesn't implement handler for {target.FullName}");
 
+            var method = _targets[target];
             var instance = activator.GetInstance(_t);
-            if (instance is null) return null;
+            if (instance is null || method is null) return null;
 
-            return (instance, _att);
+            return (instance, method);
         }
     }
 }

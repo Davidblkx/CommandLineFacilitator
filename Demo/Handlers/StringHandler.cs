@@ -5,21 +5,17 @@ using System;
 namespace Demo.Handlers
 {
     [HandlerHost]
-    class SplitStringHandler
+    class StringHandler
     {
         [Handler(Target = typeof(SplitStringCommand))]
         public static int SplitString(SplitStringCommand c)
         {
-            foreach(var s in c.Text.Split(c.Separator))
+            foreach (var s in c.Text.Split(c.Separator))
             { Console.WriteLine(s); }
 
             return 0;
         }
-    }
 
-    [HandlerHost]
-    class JoinStringHandler
-    {
         [Handler(Target = typeof(JoinStringCommand))]
         public static int JoinString(JoinStringCommand c)
         {

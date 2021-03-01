@@ -17,14 +17,6 @@ namespace Demo.Handlers
         {
             Console.WriteLine("Number is at:" + _calc.Get());
         }
-    }
-
-    [HandlerHost]
-    class NumberAddHandler
-    {
-        private readonly ICalculations _calc;
-
-        public NumberAddHandler(ICalculations c) { _calc = c; }
 
         [Handler(Target = typeof(AddNumberCommand))]
         public void Add(AddNumberCommand c)
@@ -33,14 +25,6 @@ namespace Demo.Handlers
                 _calc.Sum(n);
             Console.WriteLine("Number is at:" + _calc.Get());
         }
-    }
-
-    [HandlerHost]
-    class NumberSubtractHandler
-    {
-        private readonly ICalculations _calc;
-
-        public NumberSubtractHandler(ICalculations c) { _calc = c; }
 
         [Handler(Target = typeof(SubtractNumberCommand))]
         public void Add(SubtractNumberCommand c)
